@@ -1,0 +1,57 @@
+---
+title: "shinylive_quarto_test"
+format: html
+filters: 
+  - shinylive
+---
+
+```{r}
+#| label: pkg-installs
+#| eval: false
+```
+
+```{shinylive-r}
+#| viewerHeight: 700
+#| viewerWidth: 800
+#| standalone: true
+
+webr::install("ggplot2")
+webr::install("htmltools")
+library(shiny)
+library(htmltools)
+library(ggplot2)
+
+biopics <- read.csv("https://gist.githubusercontent.com/laderast/28c820e8be0a9487d8a04bab61b1f74d/raw/d1c9059ca1722b7108bf0e5d90a029fef06eac2a/biopics.csv")
+
+categoricalVars <- c("country", "type_of_subject", "subject_race", "subject_sex")
+
+ui <- fluidPage(
+    selectInput(inputId = "color_select", 
+              label = "Select Categorical Variable", 
+              choices = categoricalVars),
+
+  imageOutput("paired_plot")
+)
+
+
+server <- function(input, output) {
+  
+  # fix this line - make sure it matches the ui line above
+  output$paired_plot <- renderImage({
+    pp <- ggplot(biopics) + 
+      aes(x=year_release, 
+          y=box_office, 
+          color= .data[[input$color_select]]) +
+      geom_point()
+    
+    file <- htmltools::capturePlot(print(pp),
+                                   tempfile(fileext = ".svg"),
+                                            grDevices::svg,
+                                            width=8,
+                                            height=6)
+    list(src=file)
+  }, deleteFile = TRUE)
+}
+
+app <- shinyApp(ui = ui, server = server)
+```

@@ -1,0 +1,9 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "shinylive_quarto_test",
+    "section": "",
+    "text": "#| viewerHeight: 700\n#| viewerWidth: 800\n#| standalone: true\n\nwebr::install(\"ggplot2\")\nwebr::install(\"htmltools\")\nlibrary(shiny)\nlibrary(htmltools)\nlibrary(ggplot2)\n\nbiopics &lt;- read.csv(\"https://gist.githubusercontent.com/laderast/28c820e8be0a9487d8a04bab61b1f74d/raw/d1c9059ca1722b7108bf0e5d90a029fef06eac2a/biopics.csv\")\n\ncategoricalVars &lt;- c(\"country\", \"type_of_subject\", \"subject_race\", \"subject_sex\")\n\nui &lt;- fluidPage(\n    selectInput(inputId = \"color_select\", \n              label = \"Select Categorical Variable\", \n              choices = categoricalVars),\n\n  imageOutput(\"paired_plot\")\n)\n\n\nserver &lt;- function(input, output) {\n  \n  # fix this line - make sure it matches the ui line above\n  output$paired_plot &lt;- renderImage({\n    pp &lt;- ggplot(biopics) + \n      aes(x=year_release, \n          y=box_office, \n          color= .data[[input$color_select]]) +\n      geom_point()\n    \n    file &lt;- htmltools::capturePlot(print(pp),\n                                   tempfile(fileext = \".svg\"),\n                                            grDevices::svg,\n                                            width=8,\n                                            height=6)\n    list(src=file)\n  }, deleteFile = TRUE)\n}\n\napp &lt;- shinyApp(ui = ui, server = server)"
+  }
+]
